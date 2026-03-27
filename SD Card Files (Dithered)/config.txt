@@ -1,0 +1,142 @@
+# Config file for camera settings
+# See https://esphome.io/components/esp32_camera/
+# this is a comment
+
+[camera_settings]
+
+# QVGA|CIF|VGA|SVGA
+# if jpeg, XGA|SXGA|UXGA as well
+frame_size = QVGA
+
+hmirror = false
+
+vflip = true
+
+# -2 to 2
+brightness = 0
+
+# -2 to 2
+contrast = 0
+
+# -2 to 2
+saturation = 2
+
+# 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+special_effect = 0
+
+# 0 = disable , 1 = enable
+whitebal = 1;
+
+# 0 = disable , 1 = enable
+awb_gain = 1;
+
+# 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+wb_mode = 0;
+
+# 0 = disable , 1 = enable
+exposure_ctrl = 1;
+
+# 0 = disable , 1 = enable
+aec2 = 0;
+
+# -2 to 2
+ae_level = -1;
+
+# 0 = disable , 1 = enable
+bpc = 0;
+
+# 0 = disable , 1 = enable
+wpc = 1;
+
+# 0 = disable , 1 = enable
+raw_gma = 1;
+
+# 0 = disable , 1 = enable
+lenc = 1;
+
+[dither_palette]
+# Chromacity weight mode (how it handles monochromatic vs highly chromatic palettes)
+#  - exponential is a dynamic middle ground
+#  - factorial is an alternate dynamic middle ground
+#    > these middle grounds are good for making a particular color pop, but not necessarily
+#      good for images with many vibrant colors
+#  - weighted is ideal for monochromatic palettes
+#  - disabled is ideal for highly chromatic palettes with many colors
+# exponential|factorial|weighted|disabled
+chromacity_mode = weighted
+
+dithering_enabled = true
+
+# maps a palette's range of brightnesses to pure black and pure white.
+# This will decrease contrast if enabled. doesn't work especially well.
+map_brightness = false
+
+# Download .hex palette files from lospec.com
+# You can use multiple sets of palettes at once!
+# The more colors in the camera's palette, the longer it takes to capture.
+
+# teal, magenta, black. 8-color
+#path = /berry-nebula.hex
+
+# shades of red. 7-color
+#path = /midnight-ablaze.hex
+
+# warm-neutral scale, grayscale effect. 8-color
+#path = /nyx8.hex
+
+# neutral scale, light pinkish to dark bluish, grayscale effect. 6-color
+#path = /oil-6.hex
+
+# yellow, brown, black, goldish overall, as the name suggests. 8-color
+#path = /rust-gold-8.hex
+
+# muted green, yellow, brown, with a cool grayscale. 16-color
+#path = /steam-lords.hex
+
+# pink, blue, black. 5-color
+#path = /twilight-5.hex
+
+# expansive and vibrant palette, very bright. 42-color
+#path = /lospec500.hex
+
+# a scale from dark blue to orange to white. 8-color
+#path = /slso8.hex
+
+# purple, with pastel green, yellow, and pink. not good for dithering in most cases. 5-color
+#path = /blessing.hex
+
+# shades of teal, tints of hot pink. 6-color
+path = /curiosities.hex
+
+# expansive palette with many muted colors, notably few warms, expansive grayscale. 29-color.
+#path = /cc-29.hex
+
+# dark blue, purple, magenta, salmon. 4-color
+#path = /lava-gb.hex
+
+# crimson, salmon, light orange, cream white. 4-color
+#path = /ice-cream-gb.hex
+
+# 2 deep maroons, and 4 shades of teal. 6-color
+#path = /cyclope6.hex
+
+# expansive palette of vibrant colors, few neutral colors. 64-color
+#path = /blk-nx64.hex
+
+# a wide variety of very desaturated colors. 41-color
+#path = /40ne.hex
+
+# a palette that is supposedly ideal for "full-rgb dithering". 10-color
+#path = /10-colour-pallete.hex
+
+# black, desaturated purple, vibrant blue, vibrant red. 4-color
+#path = /1-bit-error-4.hex
+
+# pico-8's standard palette. a jack of all trades with a few deficiencies. 16-color
+#path = /pico-8.hex
+
+# picotron's standard palette. 32-color
+#path = /picotron.hex
+
+# 3 shades of red, and black, white, and gray. 6-color
+#path = /uofu.hex

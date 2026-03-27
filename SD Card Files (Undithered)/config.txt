@@ -1,0 +1,55 @@
+# Config file for camera settings
+# See https://esphome.io/components/esp32_camera/
+# this is a comment
+
+[camera_settings]
+
+# QVGA|CIF|VGA|SVGA
+# if jpeg, XGA|SXGA|UXGA as well
+frame_size = QVGA
+
+hmirror = false
+
+vflip = true
+
+# -2 to 2
+brightness = 0
+
+# -2 to 2
+contrast = 0
+
+# -2 to 2
+saturation = 2
+
+# 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+special_effect = 0
+
+# 0 = disable , 1 = enable
+whitebal = 1;
+
+# 0 = disable , 1 = enable
+awb_gain = 1;
+
+# 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+wb_mode = 0;
+
+# 0 = disable , 1 = enable
+exposure_ctrl = 1;
+
+# 0 = disable , 1 = enable
+aec2 = 0;
+
+# -2 to 2
+ae_level = -1;
+
+# 0 = disable , 1 = enable
+bpc = 0;
+
+# 0 = disable , 1 = enable
+wpc = 1;
+
+# 0 = disable , 1 = enable
+raw_gma = 1;
+
+# 0 = disable , 1 = enable
+lenc = 1;
