@@ -56,14 +56,19 @@ lenc = 1;
 
 [dither_palette]
 # Chromacity weight mode (how it handles monochromatic vs highly chromatic palettes)
-#  - exponential is a dynamic middle ground
-#  - factorial is an alternate dynamic middle ground
+#  - dynamic is a dynamically weighted middle ground
 #    > these middle grounds are good for making a particular color pop, but not necessarily
-#      good for images with many vibrant colors
+#      good for images with many vibrant colors. see also dynamic weight method.
 #  - weighted is ideal for monochromatic palettes
 #  - disabled is ideal for highly chromatic palettes with many colors
-# exponential|factorial|weighted|disabled
-chromacity_mode = weighted
+# dynamic|factorial|weighted|disabled
+chromacity_mode = dynamic
+
+# Dynamic weight method (how it calculates dynamic weights if chromacity mode is set to dynamic)
+#  - Method 0 is best for somewhat monochrome palettes with few colors
+#  - Method 1 is better than 0 for broad palettes, but still best with few colors
+#  - Method 2 is similar to method 0
+dynamic_weight_method = 1
 
 dithering_enabled = true
 
@@ -72,71 +77,79 @@ dithering_enabled = true
 map_brightness = false
 
 # Download .hex palette files from lospec.com
-# You can use multiple sets of palettes at once!
+# You can use multiple sets of palettes at once! Just uncomment all you want to use
 # The more colors in the camera's palette, the longer it takes to capture.
 
+# If you want to know what a .hex file is, open one in a text editor!
+# Each hexadecimal number represents a color.
+
 # teal, magenta, black. 8-color
-#path = /berry-nebula.hex
+#path = /pal/berry-nebula.hex
 
 # shades of red. 7-color
-#path = /midnight-ablaze.hex
+#path = /pal/midnight-ablaze.hex
 
 # warm-neutral scale, grayscale effect. 8-color
-#path = /nyx8.hex
+#path = /pal/nyx8.hex
 
 # neutral scale, light pinkish to dark bluish, grayscale effect. 6-color
-#path = /oil-6.hex
+#path = /pal/oil-6.hex
 
 # yellow, brown, black, goldish overall, as the name suggests. 8-color
-#path = /rust-gold-8.hex
+#path = /pal/rust-gold-8.hex
 
 # muted green, yellow, brown, with a cool grayscale. 16-color
-#path = /steam-lords.hex
+#path = /pal/steam-lords.hex
 
 # pink, blue, black. 5-color
-#path = /twilight-5.hex
+#path = /pal/twilight-5.hex
 
 # expansive and vibrant palette, very bright. 42-color
-#path = /lospec500.hex
+#path = /pal/lospec500.hex
 
 # a scale from dark blue to orange to white. 8-color
-#path = /slso8.hex
+#path = /pal/slso8.hex
 
 # purple, with pastel green, yellow, and pink. not good for dithering in most cases. 5-color
-#path = /blessing.hex
+#path = /pal/blessing.hex
 
 # shades of teal, tints of hot pink. 6-color
-path = /curiosities.hex
+path = /pal/curiosities.hex
 
 # expansive palette with many muted colors, notably few warms, expansive grayscale. 29-color.
-#path = /cc-29.hex
+#path = /pal/cc-29.hex
 
 # dark blue, purple, magenta, salmon. 4-color
-#path = /lava-gb.hex
+#path = /pal/lava-gb.hex
 
 # crimson, salmon, light orange, cream white. 4-color
-#path = /ice-cream-gb.hex
+#path = /pal/ice-cream-gb.hex
 
 # 2 deep maroons, and 4 shades of teal. 6-color
-#path = /cyclope6.hex
+#path = /pal/cyclope6.hex
 
 # expansive palette of vibrant colors, few neutral colors. 64-color
-#path = /blk-nx64.hex
+#path = /pal/blk-nx64.hex
 
 # a wide variety of very desaturated colors. 41-color
-#path = /40ne.hex
+#path = /pal/40ne.hex
 
 # a palette that is supposedly ideal for "full-rgb dithering". 10-color
-#path = /10-colour-pallete.hex
+#path = /pal/10-colour-pallete.hex
 
 # black, desaturated purple, vibrant blue, vibrant red. 4-color
-#path = /1-bit-error-4.hex
+#path = /pal/1-bit-error-4.hex
 
 # pico-8's standard palette. a jack of all trades with a few deficiencies. 16-color
-#path = /pico-8.hex
+#path = /pal/pico-8.hex
 
 # picotron's standard palette. 32-color
-#path = /picotron.hex
+#path = /pal/picotron.hex
 
 # 3 shades of red, and black, white, and gray. 6-color
-#path = /uofu.hex
+#path = /pal/uofu.hex
+
+# Any additional colors you'd like to use:
+#c = 000000
+#c = 057e5f
+#c = ffffff

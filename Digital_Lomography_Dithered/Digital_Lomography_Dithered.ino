@@ -128,10 +128,16 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
 
 // Chromacity weight mode (how it handles monochromatic vs highly chromatic palettes)
 enum {
-  CHROM_EXPONENTIAL, // dynamic
-  CHROM_FACTORIAL, // dynamic, alternative
-  CHROM_WEIGHTED, // ideal for monochromatic palettes
-  CHROM_DISABLED // ideal for highly chromatic palettes
+  CHROM_DYNAMIC = 0, // dynamic
+  CHROM_CONSTANT = 2, // ideal for monochromatic palettes
+  CHROM_DISABLED = 3 // ideal for highly chromatic palettes
+};
+
+// Dynamic weight calculation methods
+enum {
+  METHOD_A = 0,
+  METHOD_B = 1,
+  METHOD_C = 2
 };
 
 uint pictureNumber = 0;
@@ -144,7 +150,8 @@ float weight_coeff_r = 1;
 float weight_coeff_g = 1;
 float weight_coeff_b = 1;
 uint8_t* palette = (uint8_t *) ps_malloc(768);
-int chromacity_mode = CHROM_EXPONENTIAL;
+int chromacity_mode = CHROM_DYNAMIC;
+int dynamic_method = METHOD_C;
 bool dithering_enabled = true;
 bool brightness_mapping = false;
 uint8_t darkest = 255;
@@ -188,7 +195,7 @@ void nearestColor(uint8_t result[3], int16_t error[3], int16_t rawcolor[3], uint
       error[0] = dr;
       error[1] = dg;
       error[2] = db;
-      // Serial.println("hewwo "+String(r)+" "+String(g)+" "+String(b)+", "+String(dist)+" replaces "+String(nearest_col[0])+" "+String(nearest_col[1])+" "+String(nearest_col[2])+" "+String(nearest_dist));
+
       nearest_dist = dist;
       nearest_col[0] = r;
       nearest_col[1] = g;
@@ -233,10 +240,22 @@ void rgb585to888(int16_t col888[3], uint16_t col565) {
   col888[2] = (b * 527 + 23) >> 6;
 }
 
+void loop() {
+  digitalWrite(indicatorLED, LOW);
+}
+
 void setup() {
  
   Serial.begin(115200);
   Serial.setDebugOutput(true);
+
+  #if 1
+    delay(1000);
+  #else
+    while(! Serial);
+  #endif
+
+
   Serial.println("setup");
   
   //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
@@ -318,9 +337,15 @@ void setup() {
   int palIndex = 0;
   bool replaceDefaultPalette = false;
   File file;
-  int sum_r = 0;
-  int sum_g = 0;
-  int sum_b = 0;
+  float sum_r = 0;
+  float sum_g = 0;
+  float sum_b = 0;
+  float min_r = 1;
+  float min_g = 1;
+  float min_b = 1;
+  float max_r = 0;
+  float max_g = 0;
+  float max_b = 0;
 
   fs::FS &fs = SD;
   if (cfg.begin(fs, "/config.txt", maxLineLength, maxSectionLength, ignoreCase, ignoreError)){
@@ -331,12 +356,18 @@ void setup() {
           string.toLowerCase();
           if (string == "framesize_qvga" || string == "qvga" || string == "320x240") {
             frame_size = FRAMESIZE_QVGA;
-          } else if (string == "framesize_vga" || string == "VGA" || string == "640x480") {
+          } else if (string == "framesize_vga" || string == "vga" || string == "640x480") {
             frame_size = FRAMESIZE_VGA;
           } else if (string == "framesize_cif" || string == "cif" || string == "400x296") {
             frame_size = FRAMESIZE_CIF;
           } else if (string == "framesize_svga" || string == "svga" || string == "800x600") {
             frame_size = FRAMESIZE_SVGA;
+          } else if (string == "framesize_sxga" || string == "sxga" || string == "1280x1024") {
+            frame_size = FRAMESIZE_SXGA;
+          } else if (string == "framesize_xga" || string == "xga" || string == "1024x768") {
+            frame_size = FRAMESIZE_XGA;
+          } else if (string == "framesize_uxga" || string == "uxga" || string == "1600x1200") {
+            frame_size = FRAMESIZE_UXGA;
           }
         } else if (cfg.nameIs("hmirror")) {
           hmirror = cfg.getBooleanValue();
@@ -429,9 +460,17 @@ void setup() {
                 uint8_t v[3];
                 addToPaletteFromHex(hex.c_str(), v);
 
-                sum_r += v[0]/255;
-                sum_g += v[1]/255;
-                sum_b += v[2]/255;
+                sum_r += v[0]/(float)255;
+                sum_g += v[1]/(float)255;
+                sum_b += v[2]/(float)255;
+
+                min_r = min(min_r,v[0]/(float)255);
+                min_g = min(min_r,v[1]/(float)255);
+                min_b = min(min_r,v[2]/(float)255);
+
+                max_r = max(max_r,v[0]/(float)255);
+                max_g = max(max_r,v[1]/(float)255);
+                max_b = max(max_r,v[2]/(float)255);
 
                 hex = "";
               } else {
@@ -444,15 +483,13 @@ void setup() {
           }
           file.close();
         } else if (cfg.nameIs("chromacity_mode")) {
-          char* s = cfg.copyValue();
-          if (s == "exponential") {
-            chromacity_mode = CHROM_EXPONENTIAL;
+          String s = String(cfg.copyValue());
+          s.toLowerCase();
+          if (s == "dynamic") {
+            chromacity_mode = CHROM_DYNAMIC;
           }
-          if (s == "factorial") {
-            chromacity_mode = CHROM_FACTORIAL;
-          }
-          if (s == "weighted") {
-            chromacity_mode = CHROM_WEIGHTED;
+          if (s == "constant") {
+            chromacity_mode = CHROM_CONSTANT;
           }
           if (s == "disabled") {
             chromacity_mode = CHROM_DISABLED;
@@ -461,32 +498,63 @@ void setup() {
           brightness_mapping = cfg.getBooleanValue();
         } else if (cfg.nameIs("dithering_enabled")) {
           dithering_enabled = cfg.getBooleanValue();
+        } else if (cfg.nameIs("dynamic_weight_method")) {
+          dynamic_method = min(0,max(2,cfg.getIntValue()));
         } else {
           char* s = cfg.copyValue();
           uint8_t v[3];
           addToPaletteFromHex(s, v);
 
-          sum_r += v[0]/255;
-          sum_g += v[1]/255;
-          sum_b += v[2]/255;
+          sum_r += v[0]/(float)255;
+          sum_g += v[1]/(float)255;
+          sum_b += v[2]/(float)255;
+
+          min_r = min(min_r,v[0]/(float)255);
+          min_g = min(min_r,v[1]/(float)255);
+          min_b = min(min_r,v[2]/(float)255);
+
+          max_r = max(max_r,v[0]/(float)255);
+          max_g = max(max_r,v[1]/(float)255);
+          max_b = max(max_r,v[2]/(float)255);
         }
       }
     }
   }
   cfg.end();
-  if (replaceDefaultPalette) {
-    weight_coeff_r = min((float)1,max((float)0,1 - (sum_r / (float)palette_len)));
-    weight_coeff_g = min((float)1,max((float)0,1 - (sum_g / (float)palette_len)));
-    weight_coeff_b = min((float)1,max((float)0,1 - (sum_b / (float)palette_len)));
-    if (chromacity_mode == CHROM_EXPONENTIAL) {
+  if (replaceDefaultPalette){
+    Serial.println("analysis:");
+    // delay(10);
+    Serial.println("avg red intensity:" + String(sum_r / (float)palette_len) + "\nmin red intensity:" + String(min_r) + "\nmax red intensity:" + String(max_r));
+
+    float avg_intensity_r = sum_r / (float)palette_len;
+    float avg_intensity_g = sum_g / (float)palette_len;
+    float avg_intensity_b = sum_b / (float)palette_len;
+
+    // best for monochrome and achromatic palettes
+    if (dynamic_method == METHOD_A) {
+      weight_coeff_r = min((float)1,max((float)0,1-avg_intensity_r));
+      weight_coeff_g = min((float)1,max((float)0,1-avg_intensity_g));
+      weight_coeff_b = min((float)1,max((float)0,1-avg_intensity_b));
+    }
+
+    // better than A for broad palettes, but still best for monochrome
+    if (dynamic_method == METHOD_B) {
+      weight_coeff_r = min((float)1,max((float)0,1-(avg_intensity_r/max_r)));
+      weight_coeff_g = min((float)1,max((float)0,1-(avg_intensity_g/max_g)));
+      weight_coeff_b = min((float)1,max((float)0,1-(avg_intensity_b/max_b)));
+    }
+
+    // 
+    if (dynamic_method == METHOD_C) {
+      weight_coeff_r = min((float)1,max((float)0,1-((avg_intensity_r+min_r)/max_r)));
+      weight_coeff_g = min((float)1,max((float)0,1-((avg_intensity_g+min_g)/max_g)));
+      weight_coeff_b = min((float)1,max((float)0,1-((avg_intensity_b+min_b)/max_b)));
+    }
+    
+    if (chromacity_mode == CHROM_DYNAMIC) {
       weight_r = pow(weight_r, weight_coeff_r);
       weight_g = pow(weight_g, weight_coeff_g);
       weight_b = pow(weight_b, weight_coeff_b);
-    }
-    if (chromacity_mode == CHROM_FACTORIAL) {
-      weight_r *= weight_coeff_r;
-      weight_g *= weight_coeff_g;
-      weight_b *= weight_coeff_b;
     }
   }
   for (int i = palette_len*3; i < 768; i+=3) {
@@ -549,6 +617,8 @@ void setup() {
   Serial.println("wpc="+String(wpc));
   Serial.println("raw_gma="+String(raw_gma));
   Serial.println("lenc="+String(lenc));
+
+  Serial.println("chromacity mode="+String(chromacity_mode) + " (enum value)");
 
   // Serial.println("darkest="+String(darkest));
   // Serial.println("brightest="+String(brightest));
@@ -677,9 +747,5 @@ void setup() {
   // }
   EEPROM.commit();
   delay(100);
-  digitalWrite(indicatorLED, LOW);
-}
-
-void loop() {
   digitalWrite(indicatorLED, LOW);
 }

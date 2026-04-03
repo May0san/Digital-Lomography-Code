@@ -161,7 +161,7 @@ void setup() {
           string.toLowerCase();
           if (string == "framesize_qvga" || string == "qvga" || string == "320x240") {
             frame_size = FRAMESIZE_QVGA;
-          } else if (string == "framesize_vga" || string == "VGA" || string == "640x480") {
+          } else if (string == "framesize_vga" || string == "vga" || string == "640x480") {
             frame_size = FRAMESIZE_VGA;
           } else if (string == "framesize_cif" || string == "cif" || string == "400x296") {
             frame_size = FRAMESIZE_CIF;
