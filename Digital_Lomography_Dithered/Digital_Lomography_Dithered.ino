@@ -330,7 +330,7 @@ void setup() {
   digitalWrite(indicatorLED, HIGH);//45? originally 44
 
   // Read config.txt on SD card
-  int maxLineLength = 30;
+  int maxLineLength = 64;
   int maxSectionLength = 128; // max 128 palette colors
   bool ignoreCase = true;
   bool ignoreError = true;
