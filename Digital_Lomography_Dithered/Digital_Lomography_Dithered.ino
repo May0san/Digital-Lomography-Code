@@ -150,6 +150,7 @@ float weight_coeff_r = 1;
 float weight_coeff_g = 1;
 float weight_coeff_b = 1;
 uint8_t* palette;
+camera_fb_t * fb;
 int chromacity_mode = CHROM_DYNAMIC;
 int dynamic_method = METHOD_C;
 bool dithering_enabled = true;
@@ -243,7 +244,7 @@ void rgb585to888(int16_t col888[3], uint16_t col565) {
 void capture() {
   // Warm-up loop to discard first few frames, resolve auto exposure and whitebalance
   for (int i = 0; i < 12; i++) {
-    camera_fb_t * fb = esp_camera_fb_get();
+    fb = esp_camera_fb_get();
     if (!fb) {
       Serial.println("Failed to capture frame");
       continue;
@@ -253,7 +254,7 @@ void capture() {
 
   // Take Picture with Camera, store as raw pixels in RGB565
   // Here I take the picture I will use:
-  camera_fb_t *fb = esp_camera_fb_get();
+  fb = esp_camera_fb_get();
 
   delay(100);
   if(!fb) {
@@ -351,6 +352,7 @@ void capture() {
   } else {
     Serial.println("png.open failed");
   }
+  esp_camera_fb_return(fb);
   free(currentPixLineBuffer);
   free(nextPixLineBuffer);
   free(ditheredPixLineBuffer);
@@ -769,9 +771,10 @@ void setup() {
 void loop() {
   digitalWrite(indicatorLED, LOW);
   Serial.println("honk shoo");
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_9, 1);
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_8, 1);
   Serial.println("mimimimi");
-  esp_deep_sleep_start();
+  //esp_deep_sleep_start();
+  delay(1500);
   digitalWrite(indicatorLED, HIGH);
   capture();
 }

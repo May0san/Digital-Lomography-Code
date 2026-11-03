@@ -86,55 +86,55 @@ map_brightness = false
 # PICOTRON
 
 # pico-8's standard palette. a jack of all trades with a few deficiencies. 16-color
-#path = /pal/pico-8.hex
+#path = /Palettes/pico-8.hex
 
 # picotron's standard palette. 32-color
-#path = /pal/picotron.hex
+#path = /Palettes/picotron.hex
 
 # deep maroon to brown to tan. 5-color
-#path = /pal/flesh.hex
+#path = /Palettes/flesh.hex
 
 # deep maroon to tan to white. 5-color
-#path = /pal/sand.hex
+#path = /Palettes/sand.hex
 
 # shades of maroon and pink. 5-color
-#path = /pal/blackberry.hex
+#path = /Palettes/blackberry.hex
 
 # black to blue to white. 6-color
-#path = /pal/sky.hex
+#path = /Palettes/sky.hex
 
 # deep blue to green to white. 7-color
-#path = /pal/emerald.hex
+#path = /Palettes/emerald.hex
 
 # deep maroon to orange to yellow to white. 7-color
-#path = /pal/tangerine.hex
+path = /Palettes/tangerine.hex
 
 # deep blue to 3 shades of lavender to white. 6-color
-#path = /pal/lavender.hex
+#path = /Palettes/lavender.hex
 
 # deep maroon to red to light pink. 6-color
-#path = /pal/strawberry.hex
+#path = /Palettes/strawberry.hex
 
 # black to aquatic blue to white
-#path = /pal/seafoam.hex
+path = /Palettes/seafoam.hex
 
 # shades of maroon and tan. 7-color
-#path = /pal/sand_storm.hex
+#path = /Palettes/sand_storm.hex
 
 # flesh & strawberry. 10-color
-#path = /pal/fruit_tree.hex
+#path = /Palettes/fruit_tree.hex
 
 # shades of lavender and aquatic blue. 8-color
-#path = /pal/mist_shroud.hex
+#path = /Palettes/mist_shroud.hex
 
 # shades of pink, tan, aquatic blue, and blue. also has black. 13-color
-path = /pal/aerial_blossoms.hex
+#path = /Palettes/aerial_blossoms.hex
 
 # crimson, salmon, light orange, cream white. 5-color
-path = /pal/ice-cream_2.hex
+#path = /Palettes/ice-cream_2.hex
 
 # shades of teal, tints of hot pink. 6-color
-path = /pal/shiny_things.hex
+#path = /Palettes/shiny_things.hex
 
 # Any additional colors you'd like to use:
 #c = 000000
