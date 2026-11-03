@@ -240,7 +240,134 @@ void rgb585to888(int16_t col888[3], uint16_t col565) {
   col888[2] = (b * 527 + 23) >> 6;
 }
 
-void loop() {
+void capture() {
+  // Warm-up loop to discard first few frames, resolve auto exposure and whitebalance
+  for (int i = 0; i < 12; i++) {
+    camera_fb_t * fb = esp_camera_fb_get();
+    if (!fb) {
+      Serial.println("Failed to capture frame");
+      continue;
+    }
+    esp_camera_fb_return(fb);
+  }
+
+  // Take Picture with Camera, store as raw pixels in RGB565
+  // Here I take the picture I will use:
+  camera_fb_t *fb = esp_camera_fb_get();
+
+  delay(100);
+  if(!fb) {
+    Serial.println("Camera capture failed");
+    return;
+  }
+
+  // MODIFY THE PIXELS OF fb->buf HERE
+  
+  // initialize EEPROM with predefined size
+  EEPROM.begin(EEPROM_SIZE);
+  pictureNumber = EEPROM.read(3) << 24;
+  pictureNumber += EEPROM.read(2) << 16;
+  pictureNumber += EEPROM.read(1) << 8;
+  pictureNumber += EEPROM.read(0);
+  pictureNumber ++;
+
+  // Path where new picture will be saved in SD Card
+  String path = "/outdoor" + String(pictureNumber) +".png";
+
+  // fs::FS &fs = SD; 
+  Serial.printf("Picture file name: %s\n", path.c_str());
+  
+  // convert RGB565 raw data to PNG
+  int rc;
+  unsigned long dataSize;
+  uint8_t * imgOut;
+  unsigned long allocLen = (fb->width*fb->height*24)/2;
+  // imgOut = (uint8_t *) ps_malloc(allocLen);
+  uint16_t sourcePixLineBuffer[fb->width];
+  int16_t * currentPixLineBuffer;
+  uint8_t * ditheredPixLineBuffer;
+  int16_t * nextPixLineBuffer;
+  currentPixLineBuffer = (int16_t *) ps_malloc(fb->width*3*sizeof(int16_t));
+  ditheredPixLineBuffer = (uint8_t *) ps_malloc(fb->width*3*sizeof(uint8_t));
+  nextPixLineBuffer = (int16_t *) ps_malloc(fb->width*3*sizeof(int16_t));
+  for (int i = 0; i < fb->width * 3; i++) {
+    currentPixLineBuffer[i] = 0;
+  }
+
+  uint x, y;
+
+  rc = png.open(path.c_str(), myOpen, myClose, myRead, myWrite, mySeek);
+
+  Serial.println("palette_len = "+String(palette_len));
+
+  if (rc == PNG_SUCCESS){
+    rc = png.encodeBegin(fb->width, fb->height, PNG_PIXEL_TRUECOLOR, 24, NULL, 7);
+    if (rc == PNG_SUCCESS){
+      for (y = 0; y < fb->height && rc == PNG_SUCCESS; y++){
+        for (int i = 0; i < fb->width * 3; i++) {
+          nextPixLineBuffer[i] = 0;
+        }
+        for (x = 0; x < fb->width; x++){
+
+          uint16_t pix585 = (fb->buf[(y*fb->width*2)+(x*2)+1]) | (fb->buf[(y*fb->width*2)+x*2]) << 8;
+          int16_t currentPix[3];
+          rgb585to888(currentPix, pix585);
+
+           for (uint8_t i = 0; i < 3; i++) {
+            currentPix[i] += currentPixLineBuffer[(x*3)+i];
+           }
+          uint8_t quantPix[3];
+          int16_t pixError[3];
+          nearestColor(quantPix, pixError, currentPix, palette_len, palette);
+          if (dithering_enabled) {
+            for (uint8_t i = 0; i < 3; i++){
+              if (x > 0) {
+                nextPixLineBuffer[((x-1)*3) + i] += (pixError[i] * 3) >> 4; // 3/16 of error
+              }
+              nextPixLineBuffer[(x*3) + i] += (pixError[i] * 5) >> 4; // 5/16
+              if (x < fb->width-1) {
+                nextPixLineBuffer[((x+1)*3) + i] += pixError[i] >> 4; // 1/16
+                currentPixLineBuffer[((x+1)*3) + i] += (pixError[i] * 7) >> 4; // 7/16
+              }
+            }
+          }
+
+          ditheredPixLineBuffer[x*3] = quantPix[0];
+          ditheredPixLineBuffer[(x*3)+1] = quantPix[1];
+          ditheredPixLineBuffer[(x*3)+2] = quantPix[2];
+          
+        }
+        rc = png.addLine(ditheredPixLineBuffer);
+        free(currentPixLineBuffer);
+        currentPixLineBuffer = nextPixLineBuffer;
+        nextPixLineBuffer = (int16_t *) ps_malloc(fb->width*3*sizeof(int16_t));
+      }
+      Serial.println("scan finished before "+ String(y)+ " on image height ");
+      dataSize = png.close();
+    } else {
+      Serial.println("png.encodeBegin failed");
+      png.close();
+    }
+  } else {
+    Serial.println("png.open failed");
+  }
+  free(currentPixLineBuffer);
+  free(nextPixLineBuffer);
+  free(ditheredPixLineBuffer);
+  Serial.println("PNG result: "+String(rc));
+  Serial.println("With error: "+String(png.getLastError()));
+  
+  Serial.println(dataSize);
+  Serial.printf("Saved file to path: %s\n", path.c_str());
+  EEPROM.write(0, pictureNumber & 0xff);
+  EEPROM.write(1, (pictureNumber >> 8) & 0xff);
+  EEPROM.write(2, (pictureNumber >> 16) & 0xff);
+  EEPROM.write(3, (pictureNumber >> 24) & 0xff);
+  // for (uint8_t i = 0; i < 4; i++){
+  //   EEPROM.write(i, 0); //set EEPROM-pictureNumber back to 0
+  // }
+  EEPROM.commit();
+  delay(100);
   digitalWrite(indicatorLED, LOW);
 }
 
@@ -271,6 +398,9 @@ void setup() {
   //delay(500);
   //LED
   pinMode(indicatorLED, OUTPUT);
+  digitalWrite(indicatorLED, HIGH);
+
+  Serial.println("pin config");
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -318,6 +448,8 @@ void setup() {
   for (int i = 0; i < sizeof(default_palette); i++) {
     palette[i] = default_palette[i];
   }
+
+  Serial.println("end pin config");
 
   delay(50);
 
@@ -632,129 +764,14 @@ void setup() {
   // Serial.println("darkest="+String(darkest));
   // Serial.println("brightest="+String(brightest));
 
+}
+
+void loop() {
   digitalWrite(indicatorLED, LOW);
-  // Warm-up loop to discard first few frames, resolve auto exposure and whitebalance
-  for (int i = 0; i < 12; i++) {
-    camera_fb_t * fb = esp_camera_fb_get();
-    if (!fb) {
-      Serial.println("Failed to capture frame");
-      continue;
-    }
-    esp_camera_fb_return(fb);
-  }
+  Serial.println("honk shoo");
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_9, 1);
+  Serial.println("mimimimi");
+  esp_deep_sleep_start();
   digitalWrite(indicatorLED, HIGH);
-  // Take Picture with Camera, store as raw pixels in RGB565
-  // Here I take the picture I will use:
-  camera_fb_t *fb = esp_camera_fb_get();
-
-  delay(100);
-  if(!fb) {
-    Serial.println("Camera capture failed");
-    return;
-  }
-
-  // MODIFY THE PIXELS OF fb->buf HERE
-  
-  // initialize EEPROM with predefined size
-  EEPROM.begin(EEPROM_SIZE);
-  pictureNumber = EEPROM.read(3) << 24;
-  pictureNumber += EEPROM.read(2) << 16;
-  pictureNumber += EEPROM.read(1) << 8;
-  pictureNumber += EEPROM.read(0);
-  pictureNumber ++;
-
-  // Path where new picture will be saved in SD Card
-  String path = "/outdoor" + String(pictureNumber) +".png";
-
-  // fs::FS &fs = SD; 
-  Serial.printf("Picture file name: %s\n", path.c_str());
-  
-  // convert RGB565 raw data to PNG
-  int rc;
-  unsigned long dataSize;
-  uint8_t * imgOut;
-  unsigned long allocLen = (fb->width*fb->height*24)/2;
-  // imgOut = (uint8_t *) ps_malloc(allocLen);
-  uint16_t sourcePixLineBuffer[fb->width];
-  int16_t * currentPixLineBuffer;
-  uint8_t * ditheredPixLineBuffer;
-  int16_t * nextPixLineBuffer;
-  currentPixLineBuffer = (int16_t *) ps_malloc(fb->width*3*sizeof(int16_t));
-  ditheredPixLineBuffer = (uint8_t *) ps_malloc(fb->width*3*sizeof(uint8_t));
-  nextPixLineBuffer = (int16_t *) ps_malloc(fb->width*3*sizeof(int16_t));
-  for (int i = 0; i < fb->width * 3; i++) {
-    currentPixLineBuffer[i] = 0;
-  }
-
-  uint x, y;
-
-  rc = png.open(path.c_str(), myOpen, myClose, myRead, myWrite, mySeek);
-
-  Serial.println("palette_len = "+String(palette_len));
-
-  if (rc == PNG_SUCCESS){
-    rc = png.encodeBegin(fb->width, fb->height, PNG_PIXEL_TRUECOLOR, 24, NULL, 7);
-    if (rc == PNG_SUCCESS){
-      for (y = 0; y < fb->height && rc == PNG_SUCCESS; y++){
-        for (int i = 0; i < fb->width * 3; i++) {
-          nextPixLineBuffer[i] = 0;
-        }
-        for (x = 0; x < fb->width; x++){
-
-          uint16_t pix585 = (fb->buf[(y*fb->width*2)+(x*2)+1]) | (fb->buf[(y*fb->width*2)+x*2]) << 8;
-          int16_t currentPix[3];
-          rgb585to888(currentPix, pix585);
-
-           for (uint8_t i = 0; i < 3; i++) {
-            currentPix[i] += currentPixLineBuffer[(x*3)+i];
-           }
-          uint8_t quantPix[3];
-          int16_t pixError[3];
-          nearestColor(quantPix, pixError, currentPix, palette_len, palette);
-          if (dithering_enabled) {
-            for (uint8_t i = 0; i < 3; i++){
-              if (x > 0) {
-                nextPixLineBuffer[((x-1)*3) + i] += (pixError[i] * 3) >> 4; // 3/16 of error
-              }
-              nextPixLineBuffer[(x*3) + i] += (pixError[i] * 5) >> 4; // 5/16
-              if (x < fb->width-1) {
-                nextPixLineBuffer[((x+1)*3) + i] += pixError[i] >> 4; // 1/16
-                currentPixLineBuffer[((x+1)*3) + i] += (pixError[i] * 7) >> 4; // 7/16
-              }
-            }
-          }
-
-          ditheredPixLineBuffer[x*3] = quantPix[0];
-          ditheredPixLineBuffer[(x*3)+1] = quantPix[1];
-          ditheredPixLineBuffer[(x*3)+2] = quantPix[2];
-          
-        }
-        rc = png.addLine(ditheredPixLineBuffer);
-        currentPixLineBuffer = nextPixLineBuffer;
-        nextPixLineBuffer = (int16_t *) ps_malloc(fb->width*3*sizeof(int16_t));
-      }
-      Serial.println("scan finished before "+ String(y)+ " on image height ");
-      dataSize = png.close();
-    } else {
-      Serial.println("png.encodeBegin failed");
-      png.close();
-    }
-  } else {
-    Serial.println("png.open failed");
-  }
-  Serial.println("PNG result: "+String(rc));
-  Serial.println("With error: "+String(png.getLastError()));
-  
-  Serial.println(dataSize);
-  Serial.printf("Saved file to path: %s\n", path.c_str());
-  EEPROM.write(0, pictureNumber & 0xff);
-  EEPROM.write(1, (pictureNumber >> 8) & 0xff);
-  EEPROM.write(2, (pictureNumber >> 16) & 0xff);
-  EEPROM.write(3, (pictureNumber >> 24) & 0xff);
-  // for (uint8_t i = 0; i < 4; i++){
-  //   EEPROM.write(i, 0); //set EEPROM-pictureNumber back to 0
-  // }
-  EEPROM.commit();
-  delay(100);
-  digitalWrite(indicatorLED, LOW);
+  capture();
 }
