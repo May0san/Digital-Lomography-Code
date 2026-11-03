@@ -149,7 +149,7 @@ float weight_b = 0.0593;
 float weight_coeff_r = 1;
 float weight_coeff_g = 1;
 float weight_coeff_b = 1;
-uint8_t* palette = (uint8_t *) ps_malloc(768);
+uint8_t* palette;
 int chromacity_mode = CHROM_DYNAMIC;
 int dynamic_method = METHOD_C;
 bool dithering_enabled = true;
@@ -255,14 +255,22 @@ void setup() {
     while(! Serial);
   #endif
 
+  if (psramInit()){
+
+  } else {
+    while (true){
+      Serial.println("psram failed to init");
+    }
+  }
+
 
   Serial.println("setup");
   
   //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
 
   //delay(500);
- //LED
- pinMode(indicatorLED, OUTPUT);
+  //LED
+  pinMode(indicatorLED, OUTPUT);
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -305,6 +313,7 @@ void setup() {
   int wpc = 1;
   int raw_gma = 1;
   int lenc = 1;
+  palette = (uint8_t *) ps_malloc(768);
   uint8_t default_palette[9] = {0,0,0,127,127,127,255,255,255};
   for (int i = 0; i < sizeof(default_palette); i++) {
     palette[i] = default_palette[i];
