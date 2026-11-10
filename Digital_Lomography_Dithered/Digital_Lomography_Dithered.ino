@@ -140,8 +140,10 @@ enum {
   METHOD_C = 2
 };
 
+#define buttonPin  GPIO_NUM_8
+
 uint pictureNumber = 0;
-int indicatorLED = 44;
+const int indicatorLED = 44;
 int palette_len = 3;
 float weight_r = 0.2627;
 float weight_g = 0.678;
@@ -384,6 +386,7 @@ void setup() {
     while(! Serial);
   #endif
 
+
   if (psramInit()){
 
   } else {
@@ -401,6 +404,15 @@ void setup() {
   //LED
   pinMode(indicatorLED, OUTPUT);
   digitalWrite(indicatorLED, HIGH);
+
+  pinMode(buttonPin, INPUT_PULLDOWN);
+  esp_err_t wakeup_result = esp_sleep_enable_ext0_wakeup(buttonPin, 1);
+
+  if (wakeup_result == ESP_OK) {
+    Serial.println("EXT0 Wake-Up set successfully as wake-up source.");
+  } else {
+    Serial.println("Failed to set EXT0 Wake-Up as wake-up source.");
+  }
 
   Serial.println("pin config");
 
@@ -771,10 +783,13 @@ void setup() {
 void loop() {
   digitalWrite(indicatorLED, LOW);
   Serial.println("honk shoo");
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_8, 1);
   Serial.println("mimimimi");
-  //esp_deep_sleep_start();
-  delay(1500);
+  // delay(5000);
+  esp_light_sleep_start();
+  // while (digitalRead(buttonPin) == LOW){
+  //   Serial.println("a");
+  // }
+  Serial.println("");
   digitalWrite(indicatorLED, HIGH);
   capture();
 }
