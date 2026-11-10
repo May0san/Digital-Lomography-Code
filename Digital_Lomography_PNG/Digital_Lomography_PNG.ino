@@ -122,20 +122,47 @@ int32_t mySeek(PNGFILE *handle, int32_t position) {
   return handle->iPos;
 }
 
+#define buttonPin  GPIO_NUM_8
 uint pictureNumber = 0;
 int indicatorLED = 44;
+camera_fb_t * fb = NULL;
 
 void setup() {
  
   Serial.begin(115200);
   Serial.setDebugOutput(true);
+  #if 1
+    delay(1000);
+  #else
+    while(! Serial);
+  #endif
+
+  if (psramInit()){
+
+  } else {
+    while (true){
+      Serial.println("psram failed to init");
+    }
+  }
+
+
   Serial.println("setup");
   
   //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
 
   //delay(500);
- //LED
- pinMode(indicatorLED, OUTPUT);
+  //LED
+  pinMode(indicatorLED, OUTPUT);
+  digitalWrite(indicatorLED, HIGH);
+
+  pinMode(buttonPin, INPUT_PULLDOWN);
+  esp_err_t wakeup_result = esp_sleep_enable_ext0_wakeup(buttonPin, 1);
+
+  if (wakeup_result == ESP_OK) {
+    Serial.println("EXT0 Wake-Up set successfully as wake-up source.");
+  } else {
+    Serial.println("Failed to set EXT0 Wake-Up as wake-up source.");
+  }
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -361,8 +388,10 @@ void setup() {
   Serial.println("raw_gma="+String(raw_gma));
   Serial.println("lenc="+String(lenc));
 
-  camera_fb_t * fb = NULL;
+  
+}
 
+void capture(){
   // Warm-up loop to discard first few frames
   for (int i = 0; i < 12; i++) {
     fb = esp_camera_fb_get();
@@ -374,9 +403,11 @@ void setup() {
   }
   // Take Picture with Camera, store as raw pixels in RGB565
   // Here I take the picture I will use:
+  digitalWrite(indicatorLED, LOW);
   fb = esp_camera_fb_get();
-
   delay(100);
+  digitalWrite(indicatorLED, HIGH);
+
   if(!fb) {
     Serial.println("Camera capture failed");
     return;
@@ -404,7 +435,7 @@ void setup() {
   uint8_t * imgOut;
   // unsigned long allocLen = (fb->width*fb->height*24)/2;
   // imgOut = (uint8_t *) ps_malloc(allocLen);
-  uint16_t sourcePixLineBuffer[fb->width];
+  uint16_t * sourcePixLineBuffer = (uint16_t *) ps_malloc(fb->width*sizeof(uint16_t));
   uint8_t * convertedPixLineBuffer;
   convertedPixLineBuffer = (uint8_t *) ps_malloc(fb->width*3*sizeof(uint8_t));
 
@@ -432,6 +463,9 @@ void setup() {
   } else {
     Serial.println("png.open failed");
   }
+  esp_camera_fb_return(fb);
+  free(sourcePixLineBuffer);
+  free(convertedPixLineBuffer);
   Serial.println("PNG result: "+String(rc));
   Serial.println("With error: "+String(png.getLastError()));
   
@@ -451,4 +485,11 @@ void setup() {
 
 void loop() {
   digitalWrite(indicatorLED, LOW);
+  Serial.println("honk shoo");
+  Serial.println("mimimimi");
+  delay(500);
+  // delay(5000);
+  esp_light_sleep_start();
+  digitalWrite(indicatorLED, HIGH);
+  capture();
 }

@@ -256,9 +256,11 @@ void capture() {
 
   // Take Picture with Camera, store as raw pixels in RGB565
   // Here I take the picture I will use:
+  digitalWrite(indicatorLED, LOW);
   fb = esp_camera_fb_get();
-
   delay(100);
+  digitalWrite(indicatorLED, HIGH);
+
   if(!fb) {
     Serial.println("Camera capture failed");
     return;
@@ -385,7 +387,6 @@ void setup() {
   #else
     while(! Serial);
   #endif
-
 
   if (psramInit()){
 
@@ -784,12 +785,8 @@ void loop() {
   digitalWrite(indicatorLED, LOW);
   Serial.println("honk shoo");
   Serial.println("mimimimi");
-  // delay(5000);
+  delay(500);
   esp_light_sleep_start();
-  // while (digitalRead(buttonPin) == LOW){
-  //   Serial.println("a");
-  // }
-  Serial.println("");
   digitalWrite(indicatorLED, HIGH);
   capture();
 }

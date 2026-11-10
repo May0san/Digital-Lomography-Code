@@ -74,6 +74,7 @@ FileConfig cfg;
   #error "Camera model not selected"
 #endif
 
+#define buttonPin  GPIO_NUM_8
 
 int pictureNumber = 0;
 int indicatorLED = 44;
@@ -84,9 +85,40 @@ void setup() {
   Serial.setDebugOutput(true);
   Serial.println("setup");
   // LED on
-  digitalWrite(indicatorLED, HIGH);//45? originally 44
+  
+  #if 1
+    delay(1000);
+  #else
+    while(! Serial);
+  #endif
+
+
+  if (psramInit()){
+
+  } else {
+    while (true){
+      Serial.println("psram failed to init");
+    }
+  }
+
+
+  Serial.println("setup");
   
   //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
+
+  //delay(500);
+  //LED
+  pinMode(indicatorLED, OUTPUT);
+  digitalWrite(indicatorLED, HIGH);
+
+  pinMode(buttonPin, INPUT_PULLDOWN);
+  esp_err_t wakeup_result = esp_sleep_enable_ext0_wakeup(buttonPin, 1);
+
+  if (wakeup_result == ESP_OK) {
+    Serial.println("EXT0 Wake-Up set successfully as wake-up source.");
+  } else {
+    Serial.println("Failed to set EXT0 Wake-Up as wake-up source.");
+  }
 
   //delay(500);
  //LED
@@ -291,7 +323,12 @@ void setup() {
   s->set_raw_gma(s, raw_gma);        // 0 = disable , 1 = enable
   s->set_lenc(s, lenc);           // 0 = disable , 1 = enable
 
+  
+
   digitalWrite(indicatorLED, LOW);
+}
+
+void capture() {
   // Warm-up loop to discard first few frames, resolve auto exposure and whitebalance
   for (int i = 0; i < 12; i++) {
     camera_fb_t * fb = esp_camera_fb_get();
@@ -304,8 +341,11 @@ void setup() {
   digitalWrite(indicatorLED, HIGH);
 
   // Take Picture with Camera
+  digitalWrite(indicatorLED, LOW);
   camera_fb_t * fb = esp_camera_fb_get();
   delay(100);
+  digitalWrite(indicatorLED, HIGH);
+
   if(!fb) {
     Serial.println("Camera capture failed");
     return;
@@ -322,7 +362,9 @@ void setup() {
   String path = "/outdoor" + String(pictureNumber) +".jpg";
 
   Serial.printf("Picture file name: %s\n", path.c_str());
-  
+
+  fs::FS &fs = SD;
+
   File file = fs.open(path.c_str(), FILE_WRITE);
   if(!file){
     Serial.println("Failed to open file in writing mode");
@@ -340,6 +382,9 @@ void setup() {
     EEPROM.commit();
   }
   file.close();
+  
+  
+  EEPROM.commit();
   esp_camera_fb_return(fb); 
   delay(100);
   /*
@@ -352,4 +397,11 @@ void setup() {
 
 void loop() {
   digitalWrite(indicatorLED, LOW);
+  Serial.println("honk shoo");
+  Serial.println("mimimimi");
+  delay(500);
+  esp_light_sleep_start();
+  // delay(5000);
+  digitalWrite(indicatorLED, HIGH);
+  capture();
 }
