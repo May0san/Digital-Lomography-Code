@@ -10,7 +10,7 @@ frame_size = QVGA
 
 hmirror = false
 
-vflip = true
+vflip = false
 
 # -2 to 2
 brightness = 0

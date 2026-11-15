@@ -168,7 +168,8 @@ void setup() {
 
   //Serial.println("Starting SD Card");
     if(!SD.begin(21)){
-        Serial.println("Card Mount Failed");
+        while (true)
+          Serial.println("Card Mount Failed");
         return;
     }
   

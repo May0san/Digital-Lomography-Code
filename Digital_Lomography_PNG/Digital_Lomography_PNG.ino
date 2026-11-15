@@ -451,6 +451,7 @@ void capture(){
         for (x = 0; x < fb->width*2; x++){
           if (x%2 == 0) {sourcePixLineBuffer[x/2] = 0;}
           sourcePixLineBuffer[x/2] |= (fb->buf[(y*fb->width*2)+x]) << ((1-(x%2))*8);
+
         }
         rc = png.addRGB565Line(sourcePixLineBuffer,convertedPixLineBuffer);
       }
