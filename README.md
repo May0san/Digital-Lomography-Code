@@ -34,7 +34,9 @@ If you are visiting from the Picotron Community, there are also a set of palette
 
     ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/library2.png)
 
-- Plug your board into the computer.
+- Plug your board into the computer. If you already have a program flashed to your esp32, you may need to hold the boot button down, which starts the board without code. This is because you cannot flash code while the board is asleep. Alternatively, the code in this repository keeps the board awake if the SD card is not inserted when the board turns on.
+
+    ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/boot.png)
 
 - Select the box with the USB icon next to the compile, upload, and debug options. Click "Select other board and port..." Search for and select the "XIAO_ESP32S3" board as well as whichever serial port is recognized as having a board connected (in my case, it is indicated by the "(USB)" written to the right of the port name).
 
