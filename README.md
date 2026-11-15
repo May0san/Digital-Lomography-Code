@@ -1,3 +1,5 @@
+![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/camera.jpg)
+
 ### Notes
 
 This project is based on the instructables tutorial here: https://www.instructables.com/Tiny-Outdoor-Camera/
