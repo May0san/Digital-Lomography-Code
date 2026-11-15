@@ -34,7 +34,7 @@ If you are visiting from the Picotron Community, there are also a set of palette
 
     ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/library2.png)
 
-- Plug your board into the computer. If you already have a program flashed to your esp32, you may need to hold the boot button down, which starts the board without code. This is because you cannot flash code while the board is asleep. Alternatively, the code in this repository keeps the board awake if the SD card is not inserted when the board turns on.
+- Plug your board into the computer. If you already have a program flashed to your esp32, you may need to hold down the tiny boot button before plugging it in, which starts the board without code. This is because you cannot flash code while the board is asleep. Alternatively, the code in this repository keeps the board awake if the SD card is not inserted when the board turns on.
 
     ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/boot.png)
 
