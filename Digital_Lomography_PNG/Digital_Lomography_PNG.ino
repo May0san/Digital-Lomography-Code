@@ -210,14 +210,15 @@ void setup() {
 
   //Serial.println("Starting SD Card");
   if(!SD.begin(21)){
+    while (true)
       Serial.println("Card Mount Failed");
-      return;
+    return;
   }
   
   uint8_t cardType = SD.cardType();
   if(cardType == CARD_NONE){
-      Serial.println("No SD card attached");
-      return;
+    Serial.println("No SD card attached");
+    return;
   }
 
   delay(50);
