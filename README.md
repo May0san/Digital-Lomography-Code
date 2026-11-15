@@ -20,24 +20,24 @@ If you are visiting from the Picotron Community, there are also a set of palette
     `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_dev_index.json`
     `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
 
-![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/boardmanagers.png)
+    ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/boardmanagers.png)
 
 - In Tools -> PSRAM enable OPI PSRAM. This allows the board to access and allocate PSRAM.
 
-![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/psram.png)
+    ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/psram.png)
 
 - Select Boards Manager from the toolbar on the left edge. Search for and install the esp32 library, version 2.0.17. The code is stuck on an older version of the library for the time being. Arduino IDE will occasionally prompt you to update your board libraries, but you should ignore it.
 
-![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/library.png)
+    ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/library.png)
 
 - Select Library Manager from the toolbar on the left edge. Search for and install both PNGenc and FileConfig.
 
-![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/library2.png)
+    ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/library2.png)
 
 - Plug your board into the computer.
 
 - Select the box with the USB icon next to the compile, upload, and debug options. Click "Select other board and port..." Search for and select the "XIAO_ESP32S3" board as well as whichever serial port is recognized as having a board connected (in my case, it is indicated by the "(USB)" written to the right of the port name).
 
-![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/boardselect.png)
+    ![](https://github.com/May0san/Digital-Lomography-Code/blob/main/Images/boardselect.png)
 
 - Click the arrow pointing right to flash!
