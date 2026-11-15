@@ -2,11 +2,11 @@
 
 This project is based on the instructables tutorial here: https://www.instructables.com/Tiny-Outdoor-Camera/
 
-The file [instructions.pdf](https://github.com/May0san/Digital-Lomography-Code/blob/main/instructions.pdf) has a detailed guide of soldering and assembly. You can also find 3D files for the case here.
+The file [instructions.pdf](https://github.com/May0san/Digital-Lomography-Code/blob/main/instructions.pdf) has a detailed guide of soldering and assembly. You can also find 3D files for the case [here](https://github.com/May0san/Digital-Lomography-Code/tree/main/3D%20Models). If you want to purchase the PCB, you can upload [the gerber file](https://github.com/May0san/Digital-Lomography-Code/tree/main/PCB) to JLCPCB.
 
 You will need the Arduino IDE app as well as the PNGenc library and the FileConfig library (installed within the Arduino App itself)
 
-Flash the code found in this repository to your ESP-32 and load the SD card with the contents of SD Card Files folder. The process for loading the code to the ESP32 is very obscure so read the instructions at the bottom of this page carefully.
+Flash the code found in this repository to your ESP32 and load the SD card with the contents of the relevant SD Card Files folder. The process for loading the code to the ESP32 is very obscure so read the instructions at the bottom of this page carefully.
 
 The Dithered version of the code will create a dithered photograph using a palette that you give it. The JPEG and PNG versions output JPEGs and PNGs of the image, respectively. The PNG encoder library used by both the Dithered and PNG versions of the code are intensive on the ESP32 and so the camera cannot handle some of the larger photo resolutions. If you tinker with it and optimize the library usage, you might be able to get larger resolutions, but I will probably not be doing this.
 
