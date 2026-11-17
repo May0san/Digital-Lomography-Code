@@ -391,9 +391,8 @@ void setup() {
   if (psramInit()){
 
   } else {
-    while (true){
-      Serial.println("psram failed to init");
-    }
+    Serial.println("PSRAM failed to init. Camera init canceled.");
+    while (true){}
   }
 
 
@@ -407,6 +406,10 @@ void setup() {
   digitalWrite(indicatorLED, HIGH);
 
   pinMode(buttonPin, INPUT_PULLDOWN);
+  if (digitalRead(buttonPin) == LOW) {
+    Serial.println("Button held on startup; camera init canceled");
+    while (1) {}
+  }
   esp_err_t wakeup_result = esp_sleep_enable_ext0_wakeup(buttonPin, 1);
 
   if (wakeup_result == ESP_OK) {
@@ -470,8 +473,8 @@ void setup() {
 
   //Serial.println("Starting SD Card");
   if(!SD.begin(21)){
-      while (true)
-        Serial.println("Card Mount Failed");
+      Serial.println("Card Mount Failed. Camera init canceled");
+      while (true) {}
       return;
   }
   
